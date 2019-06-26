@@ -16,7 +16,8 @@ class Create extends React.Component {
         this.state = {
             company: undefined,
             user: undefined,
-            models: []
+            models: [],
+            images: []
         };
 
         this.handleSubmit.bind(this);
@@ -97,17 +98,29 @@ class Create extends React.Component {
     }
 
     onImage(acceptedFiles) {
-
-        // this.setState({ preview: e[0].preview });
-
-        console.log(acceptedFiles);
-
+        this.setState({ images: acceptedFiles});
     }
 
     handleSubmit(values) {
         const config = { headers: { 'Content-Type': 'multipart/form-data' } };
 
-        create(`/api/part/create`, values, config)
+        let images   = this.state.images;
+
+        /**
+         * Что бы нормально принять данные на симфони по хорошему счёту нужно
+         * переопределить ParamConverter или расширить интерфейс ArgumentValueResolverInterface
+         */
+        let formData = new FormData();
+
+        images.forEach((file, index) => {
+            formData.append(index, file);
+        });
+
+        for (let key in values) {
+            formData.append(key, JSON.stringify(values[key]));
+        }
+
+        create(`/api/part/create`, formData, config)
             .then((json) => {
                 console.log(json);
             })
